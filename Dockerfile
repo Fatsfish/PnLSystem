@@ -22,4 +22,4 @@ RUN dotnet publish "PnLSystem.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "PnLSystem.dll"]
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet PnLSystem.dll

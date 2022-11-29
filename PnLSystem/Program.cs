@@ -1,9 +1,20 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using PnLSystem.Models;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddDbContext<PnL1Context>(opts =>
+{
+    var connString = builder.Configuration.GetConnectionString("FStoreDB");
+    opts.UseSqlServer(connString, options =>
+    {
+        options.MigrationsAssembly(typeof(PnL1Context).Assembly.FullName.Split(',')[0]);
+    });
+});
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

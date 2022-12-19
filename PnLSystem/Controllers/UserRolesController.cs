@@ -56,8 +56,8 @@ namespace PnLSystem.Controllers
         }
 
         // GET: api/UserRoles/5
-        [HttpPost("Email")]
-        public async Task<ActionResult<IEnumerable<PnLSystem.ResponseDTOs.UserRoleAuth>>> GetUserRole(string email)
+        [HttpGet("Email")]
+        public async Task<ActionResult<IEnumerable<string>>> GetUserRole(string email)
         {
             var user = await _context.Users.Where(o => o.Email.ToLower().Equals(email.ToLower())).FirstOrDefaultAsync();
             if (user == null) { return NotFound(); }
@@ -67,11 +67,11 @@ namespace PnLSystem.Controllers
             {
                 return NotFound();
             }
-            List<PnLSystem.ResponseDTOs.UserRoleAuth> list1 = new List<PnLSystem.ResponseDTOs.UserRoleAuth>();
+            List<string> list1 = new List<string>();
             foreach (var item in list) {
                 PnLSystem.ResponseDTOs.UserRoleAuth i = new ResponseDTOs.UserRoleAuth();
                 i.Name=item.Role.Name;
-                list1.Add(i);
+                list1.Add(i.Name);
             }
             return list1;
         }

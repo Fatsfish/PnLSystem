@@ -57,22 +57,20 @@ namespace PnLSystem.Controllers
 
         // GET: api/UserRoles/5
         [HttpPost("Email")]
-        public async Task<ActionResult<IEnumerable<PnLSystem.ResponseDTOs.UserRole>>> GetUserRole(string email)
+        public async Task<ActionResult<IEnumerable<PnLSystem.ResponseDTOs.UserRoleAuth>>> GetUserRole(string email)
         {
             var user = await _context.Users.Where(o => o.Email.ToLower().Equals(email.ToLower())).FirstOrDefaultAsync();
             if (user == null) { return NotFound(); }
             int id = user.Id;
-            var list = await _context.UserRoles.Where(o => o.UserId == id).ToListAsync();
+            var list = await _context.UserRoles.Where(o => o.UserId == id).Include(o=>o.Role).ToListAsync();
             if (list == null)
             {
                 return NotFound();
             }
-            List<PnLSystem.ResponseDTOs.UserRole> list1 = new List<PnLSystem.ResponseDTOs.UserRole>();
+            List<PnLSystem.ResponseDTOs.UserRoleAuth> list1 = new List<PnLSystem.ResponseDTOs.UserRoleAuth>();
             foreach (var item in list) {
-                PnLSystem.ResponseDTOs.UserRole i = new ResponseDTOs.UserRole();
-                i.Id=item.Id;
-                i.UserId = item.UserId;
-                i.RoleId = item.RoleId;
+                PnLSystem.ResponseDTOs.UserRoleAuth i = new ResponseDTOs.UserRoleAuth();
+                i.Name=item.Role.Name;
                 list1.Add(i);
             }
             return list1;
@@ -118,6 +116,10 @@ namespace PnLSystem.Controllers
             i.Id = userRole.Id;
             i.UserId = userRole.UserId;
             i.RoleId = userRole.RoleId;
+            if (_context.UserRoles.Any(o => o.UserId == i.UserId && o.RoleId == i.RoleId))
+            {
+                return BadRequest(error: "User's already had this role!");
+            }
             _context.UserRoles.Add(i);
             await _context.SaveChangesAsync();
 

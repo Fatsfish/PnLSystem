@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using PnLSystem.Models;
 using System.Configuration;
@@ -66,6 +67,7 @@ builder.Services.AddSwaggerGen(c =>
         new List<string>()
         }
     });
+    c.CustomSchemaIds(type => type.ToString());
 });
 
 

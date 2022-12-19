@@ -70,9 +70,6 @@ builder.Services.AddSwaggerGen(c =>
     c.CustomSchemaIds(type => type.ToString());
 });
 
-
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

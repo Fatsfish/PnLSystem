@@ -5,6 +5,7 @@ using PnLSystem.Models;
 using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 // Add services to the container.
 
@@ -15,6 +16,17 @@ builder.Services.AddDbContext<PnL1Context>(opts =>
     {
         options.MigrationsAssembly(typeof(PnL1Context).Assembly.FullName.Split(',')[0]);
     });
+});
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("https://capstone-pnl-3e33b.web.app/",
+                                             "http://localhost:5008/")
+                                                  .AllowAnyHeader()
+                                                  .AllowAnyMethod();
+                      });
 });
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -83,6 +95,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     });
 
 }
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();
 

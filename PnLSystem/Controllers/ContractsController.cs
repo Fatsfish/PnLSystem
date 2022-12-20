@@ -24,9 +24,53 @@ namespace PnLSystem.Controllers
 
         // GET: api/Contracts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Contract>>> GetContracts([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<Contract>>>> GetContracts([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.Contracts.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.Contracts.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.Contract>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.Contract()
+                    {
+                        Id = i.Id,
+                        StoreId= i.StoreId,
+                        BrandId= i.BrandId,
+                        CreationDate= i.CreationDate,
+                        IsActive= i.IsActive,
+                        UserId= i.UserId,
+                        Value= i.Value,
+                        ImageLink = i.ImageLink
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.Contract>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/Contracts/5

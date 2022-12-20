@@ -24,9 +24,49 @@ namespace PnLSystem.Controllers
 
         // GET: api/BrandGroups
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BrandGroup>>> GetBrandGroups([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<BrandGroup>>>> GetBrandGroups([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.BrandGroups.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.BrandGroups.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.BrandGroup>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.BrandGroup()
+                    {
+                        Id = i.Id,
+                        GroupId = i.GroupId,
+                        IsAdmin = i.IsAdmin,
+                        UserId = i.UserId
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.BrandGroup>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/BrandGroups/5

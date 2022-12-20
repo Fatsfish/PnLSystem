@@ -24,9 +24,52 @@ namespace PnLSystem.Controllers
 
         // GET: api/HelpRequests
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<HelpRequest>>> GetHelpRequests([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<HelpRequest>>>> GetHelpRequests([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.HelpRequests.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.HelpRequests.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.HelpRequest>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.HelpRequest()
+                    {
+                        Description = i.Description,
+                        Id = i.Id,
+                        IsDelete = i.IsDelete,
+                        Name = i.Name,
+                        Status= i.Status,
+                        CreationDate = i.CreationDate,
+                        CreationUserId = i.CreationUserId
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.HelpRequest>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/HelpRequests/5

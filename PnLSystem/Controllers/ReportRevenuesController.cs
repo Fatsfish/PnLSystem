@@ -24,7 +24,7 @@ namespace PnLSystem.Controllers
 
         // GET: api/ReportRevenues
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ReportRevenue>>> GetReportRevenues([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging
+        public async Task<ActionResult<IEnumerable<ReportRevenue>>> GetReportRevenues([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
             return await _context.ReportRevenues.ToListAsync();
         }

@@ -5,7 +5,6 @@ using PnLSystem.Models;
 using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 // Add services to the container.
 
@@ -17,16 +16,21 @@ builder.Services.AddDbContext<PnL1Context>(opts =>
         options.MigrationsAssembly(typeof(PnL1Context).Assembly.FullName.Split(',')[0]);
     });
 });
-builder.Services.AddCors(options =>
+//builder.Services.AddCors(options =>
+//{
+//    options.AddDefaultPolicy(
+//        policy =>
+//        {
+//            policy.WithOrigins("https://capstone-pnl-3e33b.web.app",
+//                                             "http://localhost:5008");
+//        });
+//});
+builder.Services.AddCors(c =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.WithOrigins("https://capstone-pnl-3e33b.web.app/",
-                                             "http://localhost:5008/")
-                                                  .AllowAnyHeader()
-                                                  .AllowAnyMethod();
-                      });
+    c.AddPolicy("AllowOrigin", options => options.WithOrigins("https://capstone-pnl-3e33b.web.app",
+                                         "http://localhost:5008"));
+    c.AddPolicy("AllowHeader", options => options.AllowAnyHeader());
+    c.AddPolicy("AllowMethod", options => options.AllowAnyMethod());
 });
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -95,7 +99,13 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     });
 
 }
-app.UseCors(MyAllowSpecificOrigins);
+app.UseCors(options =>
+{
+    options.WithOrigins("https://capstone-pnl-3e33b.web.app",
+                                    "http://localhost:5008");
+    options.AllowAnyMethod();
+    options.AllowAnyOrigin();
+});
 
 app.UseAuthorization();
 

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PnLSystem.Models;
-
+using PnLSystem.ResponseDTOs.PagingModel;
 namespace PnLSystem.Controllers
 {
     [Route("api/[controller]")]

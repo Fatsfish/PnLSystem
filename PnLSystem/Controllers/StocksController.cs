@@ -24,9 +24,52 @@ namespace PnLSystem.Controllers
 
         // GET: api/Stocks
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Stock>>> GetStocks([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<Stock>>>> GetStocks([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.Stocks.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.Stocks.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.Stock>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.Stock()
+                    {
+                        Description = i.Description,
+                        Id = i.Id,
+                        IsDelete = i.IsDelete,
+                        Name = i.Name,
+                        StoreId = i.StoreId,
+                        Value = i.Value,
+                        ImageLink = i.ImageLink
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.Stock>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/Stocks/5

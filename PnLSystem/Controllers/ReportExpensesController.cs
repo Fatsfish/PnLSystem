@@ -24,9 +24,51 @@ namespace PnLSystem.Controllers
 
         // GET: api/ReportExpenses
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ReportExpense>>> GetReportExpenses([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<ReportExpense>>>> GetReportExpenses([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.ReportExpenses.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.ReportExpenses.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.ReportExpense>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.ReportExpense()
+                    {
+                        Description = i.Description,
+                        Id = i.Id,
+                        Name = i.Name,
+                        SheetId = i.SheetId,
+                        CreationDate= i.CreationDate,
+                        Value= i.Value
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.ReportExpense>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/ReportExpenses/5

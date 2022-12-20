@@ -24,9 +24,55 @@ namespace PnLSystem.Controllers
 
         // GET: api/InputSheetRevenues
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InputSheetRevenue>>> GetInputSheetRevenues([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<InputSheetRevenue>>>> GetInputSheetRevenues([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.InputSheetRevenues.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.InputSheetRevenues.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.InputSheetRevenue>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.InputSheetRevenue()
+                    {
+                        Description = i.Description,
+                        Id = i.Id,
+                        Name = i.Name,
+                        SheetId = i.SheetId,
+                        CreationDate = i.CreationDate,
+                        IsFinished = i.IsFinished,
+                        ProductId = i.ProductId,
+                        Type = i.Type,
+                        Value = i.Value,
+                        ImageLink = i.ImageLink
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.InputSheetRevenue>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/InputSheetRevenues/5

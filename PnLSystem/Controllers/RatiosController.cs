@@ -24,9 +24,51 @@ namespace PnLSystem.Controllers
 
         // GET: api/Ratios
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ratio>>> GetRatios([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<Ratio>>>> GetRatios([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.Ratios.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.Ratios.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.Ratio>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.Ratio()
+                    {
+                        Id = i.Id,
+                        StockId= i.StockId,
+                        CreationDate= i.CreationDate,
+                        IsActive= i.IsActive,
+                        ProductId= i.ProductId,
+                        Value= i.Value
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.Ratio>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/Ratios/5

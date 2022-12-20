@@ -23,6 +23,5 @@ public partial class PnLreport
 
     public double? TotalProfit { get; set; }
 
-    public virtual Brand Brand { get; set; }
 
 }

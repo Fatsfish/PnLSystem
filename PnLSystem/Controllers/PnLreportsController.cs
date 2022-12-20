@@ -24,9 +24,54 @@ namespace PnLSystem.Controllers
 
         // GET: api/PnLreports
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PnLreport>>> GetPnLreports([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<PnLreport>>>> GetPnLreports([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.PnLreports.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.PnLreports.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.PnLreport>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.PnLreport()
+                    {
+                        Id = i.Id,
+                        StoreId= i.StoreId,
+                        StartDate= i.StartDate,
+                        BrandId=i.BrandId,
+                        CreationDate= i.CreationDate,
+                        EndDate= i.EndDate,
+                        TotalLost= i.TotalLost,
+                        TotalProfit= i.TotalProfit,
+                        UpdateDate= i.UpdateDate
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.PnLreport>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/PnLreports/5

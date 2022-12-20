@@ -24,9 +24,50 @@ namespace PnLSystem.Controllers
 
         // GET: api/InputSheets
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InputSheet>>> GetInputSheets([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<InputSheet>>>> GetInputSheets([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.InputSheets.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.InputSheets.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.InputSheet>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.InputSheet()
+                    {
+                        Id = i.Id,
+                        StoreId= i.StoreId,
+                        BrandId= i.BrandId,
+                        CreationDate= i.CreationDate,
+                        UpdateDate= i.UpdateDate
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.InputSheet>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/InputSheets/5

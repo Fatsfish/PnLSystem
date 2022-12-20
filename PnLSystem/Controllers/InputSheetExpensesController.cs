@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PnLSystem.Models;
+using PnLSystem.ResponseDTOs.PagingModel;
+using PnLSystem.ResponseDTOs.SearchModel;
 
 namespace PnLSystem.Controllers
 {
@@ -22,7 +24,7 @@ namespace PnLSystem.Controllers
 
         // GET: api/InputSheetExpenses
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InputSheetExpense>>> GetInputSheetExpenses()
+        public async Task<ActionResult<IEnumerable<InputSheetExpense>>> GetInputSheetExpenses([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
             return await _context.InputSheetExpenses.ToListAsync();
         }

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PnLSystem.Models;
+using PnLSystem.ResponseDTOs.PagingModel;
+using PnLSystem.ResponseDTOs.SearchModel;
 
 namespace PnLSystem.Controllers
 {
@@ -22,7 +24,7 @@ namespace PnLSystem.Controllers
 
         // GET: api/Roles
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Role>>> GetRoles()
+        public async Task<ActionResult<IEnumerable<Role>>> GetRoles([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
             return await _context.Roles.ToListAsync();
         }

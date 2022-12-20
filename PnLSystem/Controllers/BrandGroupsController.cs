@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PnLSystem.Models;
 using PnLSystem.ResponseDTOs.PagingModel;
+using PnLSystem.ResponseDTOs.SearchModel;
+
 namespace PnLSystem.Controllers
 {
     [Route("api/[controller]")]
@@ -22,7 +24,7 @@ namespace PnLSystem.Controllers
 
         // GET: api/BrandGroups
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BrandGroup>>> GetBrandGroups()
+        public async Task<ActionResult<IEnumerable<BrandGroup>>> GetBrandGroups([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
             return await _context.BrandGroups.ToListAsync();
         }

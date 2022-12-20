@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PnLSystem.Models;
+using PnLSystem.ResponseDTOs.PagingModel;
+using PnLSystem.ResponseDTOs.SearchModel;
 
 namespace PnLSystem.Controllers
 {
@@ -22,9 +24,51 @@ namespace PnLSystem.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public async Task<ActionResult<BasePagingModel<IEnumerable<Product>>>> GetProducts([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.Products.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.Products.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.Product>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.Product()
+                    {
+                        Description = i.Description,
+                        Id = i.Id,
+                        IsDelete = i.IsDelete,
+                        Name = i.Name,
+                        CategoryId= i.CategoryId,
+                        ImageLink= i.ImageLink
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.Product>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/Products/5

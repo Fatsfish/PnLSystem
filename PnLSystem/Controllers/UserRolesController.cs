@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PnLSystem.Models;
+using PnLSystem.ResponseDTOs.PagingModel;
+using PnLSystem.ResponseDTOs.SearchModel;
 
 namespace PnLSystem.Controllers
 {
@@ -23,7 +25,7 @@ namespace PnLSystem.Controllers
 
         // GET: api/UserRoles
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PnLSystem.ResponseDTOs.UserRole>>> GetUserRoles()
+        public async Task<ActionResult<IEnumerable<PnLSystem.ResponseDTOs.UserRole>>> GetUserRoles([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
             var list = await _context.UserRoles.ToListAsync();
             List<PnLSystem.ResponseDTOs.UserRole> list1 = new List<PnLSystem.ResponseDTOs.UserRole>();

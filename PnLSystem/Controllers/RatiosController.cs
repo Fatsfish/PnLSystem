@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PnLSystem.Models;
+using PnLSystem.ResponseDTOs.PagingModel;
+using PnLSystem.ResponseDTOs.SearchModel;
 
 namespace PnLSystem.Controllers
 {
@@ -22,7 +24,7 @@ namespace PnLSystem.Controllers
 
         // GET: api/Ratios
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ratio>>> GetRatios()
+        public async Task<ActionResult<IEnumerable<Ratio>>> GetRatios([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
             return await _context.Ratios.ToListAsync();
         }

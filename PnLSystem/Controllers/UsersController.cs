@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PnLSystem.Models;
+using PnLSystem.ResponseDTOs.PagingModel;
+using PnLSystem.ResponseDTOs.SearchModel;
 
 namespace PnLSystem.Controllers
 {
@@ -22,9 +25,50 @@ namespace PnLSystem.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<BasePagingModel<IEnumerable<User>>>> GetUsers([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            return await _context.Users.ToListAsync();
+            if (searchModel is null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.Users.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.User>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.User()
+                    {
+                        Id = i.Id,
+                        DisplayName= i.DisplayName,
+                        Bio= i.Bio,
+                        Email= i.Email,
+                        IsActive= i.IsActive
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.User>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/Users/5

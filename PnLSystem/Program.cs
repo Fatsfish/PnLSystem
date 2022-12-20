@@ -105,6 +105,7 @@ app.UseCors(options =>
                                     "http://localhost:5008");
     options.AllowAnyMethod();
     options.AllowAnyOrigin();
+    options.AllowAnyHeader();
 });
 
 app.UseAuthorization();

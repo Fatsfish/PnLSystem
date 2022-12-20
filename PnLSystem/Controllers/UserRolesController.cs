@@ -25,19 +25,48 @@ namespace PnLSystem.Controllers
 
         // GET: api/UserRoles
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PnLSystem.ResponseDTOs.UserRole>>> GetUserRoles([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<UserRole>>>> GetUserRoles([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
         {
-            var list = await _context.UserRoles.ToListAsync();
-            List<PnLSystem.ResponseDTOs.UserRole> list1 = new List<PnLSystem.ResponseDTOs.UserRole>();
-            foreach (var item in list)
+            if (searchModel is null)
             {
-                PnLSystem.ResponseDTOs.UserRole i = new ResponseDTOs.UserRole();
-                i.Id = item.Id;
-                i.UserId = item.UserId;
-                i.RoleId = item.RoleId;
-                list1.Add(i);
+                throw new ArgumentNullException(nameof(searchModel));
             }
-            return list1;
+
+            try
+            {
+                paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
+                var list = await _context.UserRoles.ToListAsync();
+                int totalItem = list.ToList().Count;
+                list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
+                    .Take(paging.PageSize).ToList();
+
+                var list1 = new List<ResponseDTOs.UserRole>();
+
+                foreach (var i in list)
+                {
+                    list1.Add(new ResponseDTOs.UserRole()
+                    {
+                        Id = i.Id,
+                        UserId = i.UserId,
+                        RoleId = i.RoleId
+                    });
+                }
+
+                var groupUserResult = new BasePagingModel<ResponseDTOs.UserRole>()
+                {
+                    PageIndex = paging.PageIndex,
+                    PageSize = paging.PageSize,
+                    TotalItem = totalItem,
+                    TotalPage = (int)Math.Ceiling((decimal)totalItem / (decimal)paging.PageSize),
+                    Data = list1
+                };
+                return Ok(groupUserResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(error: ex.Message);
+            }
         }
 
         // GET: api/UserRoles/5

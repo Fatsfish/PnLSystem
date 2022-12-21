@@ -35,7 +35,11 @@ namespace PnLSystem.Controllers
             try
             {
                 paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
-                var list = await _context.Users.ToListAsync();
+                var list = await _context.Users.Where(o => o.Email.ToString().Contains(searchModel.SearchTerm) || o.DisplayName.ToString().Contains(searchModel.SearchTerm) || o.Bio.ToString().Contains(searchModel.SearchTerm)).ToListAsync();
+                if (searchModel.SearchTerm == "")
+                {
+                    list = await _context.Users.ToListAsync();
+                }
                 int totalItem = list.ToList().Count;
                 list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
                     .Take(paging.PageSize).ToList();

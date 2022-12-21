@@ -34,7 +34,19 @@ namespace PnLSystem.Controllers
             try
             {
                 paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
-                var list = await _context.InputSheetExpenses.ToListAsync();
+                var list = await _context.InputSheetExpenses.Where(o => o.CreationDate.ToString().Contains(searchModel.SearchTerm)
+                || o.Name.ToString().Contains(searchModel.SearchTerm) ||
+                o.SheetId.ToString().Contains(searchModel.SearchTerm) ||
+                o.StockId.ToString().Contains(searchModel.SearchTerm) ||
+                o.IsFinished.ToString().Contains(searchModel.SearchTerm) ||
+                o.Type.ToString().Contains(searchModel.SearchTerm) ||
+                o.Description.ToString().Contains(searchModel.SearchTerm) ||
+                o.Id.ToString().Equals(searchModel.SearchTerm) ||
+                o.Value.ToString().Equals(searchModel.SearchTerm)).OrderByDescending(o => o.CreationDate).ToListAsync();
+                if (searchModel.SearchTerm == "" || searchModel.SearchTerm == null)
+                {
+                    list = await _context.InputSheetExpenses.ToListAsync();
+                }
                 int totalItem = list.ToList().Count;
                 list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
                     .Take(paging.PageSize).ToList();

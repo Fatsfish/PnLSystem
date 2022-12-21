@@ -36,7 +36,13 @@ namespace PnLSystem.Controllers
             try
             {
                 paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
-                var list = await _context.Brands.ToListAsync();
+                var list = await _context.Brands.Where(o => o.Name.Contains(searchModel.SearchTerm) 
+                || o.Description.Contains(searchModel.SearchTerm)
+                || o.Id.ToString().Contains(searchModel.SearchTerm)).OrderByDescending(o => o.CreationDate).ToListAsync();
+                if (searchModel.SearchTerm == "" || searchModel.SearchTerm == null)
+                {
+                    list = await _context.Brands.ToListAsync();
+                }
                 int totalItem = list.ToList().Count;
                 list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
                     .Take(paging.PageSize).ToList();

@@ -24,8 +24,9 @@ namespace PnLSystem.Controllers
 
         // GET: api/HelpRequests
         [HttpGet]
-        public async Task<ActionResult<BasePagingModel<IEnumerable<HelpRequest>>>> GetHelpRequests([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging)
+        public async Task<ActionResult<BasePagingModel<IEnumerable<HelpRequest>>>> GetHelpRequests([FromQuery] UserSearchModel searchModel, [FromQuery] PagingModel paging, [FromQuery] string email)
         {
+            if(email== null) email= string.Empty;
             if (searchModel is null)
             {
                 throw new ArgumentNullException(nameof(searchModel));
@@ -34,16 +35,35 @@ namespace PnLSystem.Controllers
             try
             {
                 paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
-                var list = await _context.HelpRequests.Where(o => o.CreationDate.ToString().Contains(searchModel.SearchTerm)
+                var x = await _context.Users.Where(o => o.Email.ToLower().Contains(email.ToLower())).FirstOrDefaultAsync();
+                if (x == null) {
+                    x = new User();
+                    x.Id= -1; }
+                var list = await _context.HelpRequests.Where(o => (o.CreationDate.ToString().Contains(searchModel.SearchTerm)
+                                || o.Name.Contains(searchModel.SearchTerm) ||
+                                o.Status.Contains(searchModel.SearchTerm) ||
+                                o.Description.Contains(searchModel.SearchTerm) ||
+                                o.Id.ToString().Equals(searchModel.SearchTerm) ||
+                                o.CreationUserId.ToString().Equals(searchModel.SearchTerm)) && o.CreationUserId == x.Id).OrderByDescending(o => o.CreationDate).ToListAsync();
+                if ((email==null || email == ""))
+                {
+                    list = await _context.HelpRequests.Where(o => o.CreationDate.ToString().Contains(searchModel.SearchTerm)
                                 || o.Name.Contains(searchModel.SearchTerm) ||
                                 o.Status.Contains(searchModel.SearchTerm) ||
                                 o.Description.Contains(searchModel.SearchTerm) ||
                                 o.Id.ToString().Equals(searchModel.SearchTerm) ||
                                 o.CreationUserId.ToString().Equals(searchModel.SearchTerm)).OrderByDescending(o => o.CreationDate).ToListAsync();
-                if (searchModel.SearchTerm == "" || searchModel.SearchTerm == null)
-                {
-                    list = await _context.HelpRequests.ToListAsync();
                 }
+                if ((searchModel.SearchTerm == "" || searchModel.SearchTerm == null))
+                {
+                    list = await _context.HelpRequests.Where(o => o.CreationUserId == x.Id).OrderByDescending(o => o.CreationDate).ToListAsync();
+                }
+                if ((email == null || email == "")&& (searchModel.SearchTerm == "" || searchModel.SearchTerm == null))
+                {
+                    list = await _context.HelpRequests.OrderByDescending(o => o.CreationDate).ToListAsync();
+
+                }
+                
                 int totalItem = list.ToList().Count;
                 list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
                     .Take(paging.PageSize).ToList();

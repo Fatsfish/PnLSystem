@@ -61,7 +61,6 @@ namespace PnLSystem.Controllers
                 if ((email == null || email == "")&& (searchModel.SearchTerm == "" || searchModel.SearchTerm == null))
                 {
                     list = await _context.HelpRequests.OrderByDescending(o => o.CreationDate).ToListAsync();
-
                 }
                 
                 int totalItem = list.ToList().Count;

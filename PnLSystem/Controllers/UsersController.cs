@@ -35,9 +35,9 @@ namespace PnLSystem.Controllers
             try
             {
                 paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
-                var list = await _context.Users.Where(o => o.DisplayName.ToString().Contains(searchModel.SearchTerm)
-                                                                                             || o.Bio.ToString().Contains(searchModel.SearchTerm) ||
-                                                                                             o.Email.ToString().Contains(searchModel.SearchTerm) ||
+                var list = await _context.Users.Where(o => o.DisplayName.Contains(searchModel.SearchTerm)
+                                                                                             || o.Bio.Contains(searchModel.SearchTerm) ||
+                                                                                             o.Email.Contains(searchModel.SearchTerm) ||
                                                                                              o.IsActive.ToString().Contains(searchModel.SearchTerm) ||
                                                                                              o.Id.ToString().Equals(searchModel.SearchTerm)).OrderByDescending(o => o.Id).ToListAsync();
                 if (searchModel.SearchTerm == "" || searchModel.SearchTerm == null)

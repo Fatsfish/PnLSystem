@@ -35,12 +35,12 @@ namespace PnLSystem.Controllers
             {
                 paging = PnLSystem.Utils.PagingUtil.checkDefaultPaging(paging);
                 var list = await _context.InputSheetRevenues.Where(o => o.CreationDate.ToString().Contains(searchModel.SearchTerm)
-                                || o.Name.ToString().Contains(searchModel.SearchTerm) ||
+                                || o.Name.Contains(searchModel.SearchTerm) ||
                                 o.SheetId.ToString().Contains(searchModel.SearchTerm) ||
                                 o.ProductId.ToString().Contains(searchModel.SearchTerm) ||
                                 o.IsFinished.ToString().Contains(searchModel.SearchTerm) ||
                                 o.Type.ToString().Contains(searchModel.SearchTerm) ||
-                                o.Description.ToString().Contains(searchModel.SearchTerm) ||
+                                o.Description.Contains(searchModel.SearchTerm) ||
                                 o.Id.ToString().Equals(searchModel.SearchTerm) ||
                                 o.Value.ToString().Equals(searchModel.SearchTerm)).OrderByDescending(o => o.CreationDate).ToListAsync();
                 if (searchModel.SearchTerm == "" || searchModel.SearchTerm == null)

@@ -225,6 +225,73 @@ namespace PnLSystem.Controllers
                 }
             }
         }
+
+        [HttpGet("ImportPOS")]
+        public async Task<IActionResult> ImportPOS()
+        {
+            var testdata = await _context.PnLreports.ToListAsync();
+            var testdata1 = await _context.ReportExpenses.ToListAsync();
+            var testdata2 = await _context.ReportRevenues.ToListAsync();
+
+            //using System.Data;
+            DataTable dt = new DataTable("PnL Report");
+            dt.Columns.AddRange(new DataColumn[9] {
+                                     new DataColumn("ID"),
+                                     new DataColumn("StoreID"),
+                                     new DataColumn("BrandID"),
+                                     new DataColumn("CreationDate"),
+                                     new DataColumn("StartDate"),
+                                     new DataColumn("EndDate"),
+                                     new DataColumn("UpdateDate"),
+                                     new DataColumn("TotalProfit"),
+                                     new DataColumn("TotalLost") });
+
+            foreach (var emp in testdata)
+            {
+                dt.Rows.Add(emp.Id, emp.StoreId, emp.BrandId, emp.CreationDate, emp.StartDate, emp.EndDate, emp.UpdateDate, emp.TotalProfit, emp.TotalLost);
+            }
+
+            //using System.Data;
+            DataTable dt1 = new DataTable("Expense");
+            dt1.Columns.AddRange(new DataColumn[6] {
+                                     new DataColumn("ID"),
+                                     new DataColumn("SheetID"),
+                                     new DataColumn("Name"),
+                                     new DataColumn("CreationDate"),
+                                     new DataColumn("Description"),
+                                     new DataColumn("Value") });
+
+            foreach (var emp in testdata1)
+            {
+                dt1.Rows.Add(emp.Id, emp.SheetId, emp.Name, emp.CreationDate, emp.Description, emp.Value);
+            }
+            //using System.Data;
+            DataTable dt2 = new DataTable("Revenue");
+            dt2.Columns.AddRange(new DataColumn[6] {
+                                     new DataColumn("ID"),
+                                     new DataColumn("SheetID"),
+                                     new DataColumn("Name"),
+                                     new DataColumn("CreationDate"),
+                                     new DataColumn("Description"),
+                                     new DataColumn("Value") });
+
+            foreach (var emp in testdata2)
+            {
+                dt2.Rows.Add(emp.Id, emp.SheetId, emp.Name, emp.CreationDate, emp.Description, emp.Value);
+            }
+            //using ClosedXML.Excel;
+            using (XLWorkbook wb = new XLWorkbook())
+            {
+                wb.Worksheets.Add(dt);
+                wb.Worksheets.Add(dt1);
+                wb.Worksheets.Add(dt2);
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    wb.SaveAs(stream);
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PnLReport.xlsx");
+                }
+            }
+        }
         private bool PnLreportExists(int id)
         {
             return _context.PnLreports.Any(e => e.Id == id);

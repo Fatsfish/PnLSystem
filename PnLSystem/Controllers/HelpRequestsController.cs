@@ -62,7 +62,8 @@ namespace PnLSystem.Controllers
                 {
                     list = await _context.HelpRequests.OrderByDescending(o => o.CreationDate).ToListAsync();
                 }
-                
+                if (searchModel.isActive == true) { list = list.FindAll(o => o.IsDelete == false); }
+
                 int totalItem = list.ToList().Count;
                 list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
                     .Take(paging.PageSize).ToList();

@@ -44,6 +44,7 @@ namespace PnLSystem.Controllers
                 {
                     list = await _context.Users.ToListAsync();
                 }
+                if (searchModel.isActive == true) { list = list.FindAll(o => o.IsActive == true); }
                 int totalItem = list.ToList().Count;
                 list = list.Skip((paging.PageIndex - 1) * paging.PageSize)
                     .Take(paging.PageSize).ToList();
